@@ -18,7 +18,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '22.5.1'
-
+      - name: List current directory
+        run: ls -la
+        
       - name: Copy .env from Server
         env:
           HOST: ${{ secrets.SERVER_HOST }}
@@ -26,10 +28,7 @@ jobs:
           PORT: ${{ secrets.SERVER_PORT }}
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          scp -i $KEY -P $PORT $USERNAME@$HOST:/home/host797681/labguy-server/.env .env
-
-      - name: List current directory
-        run: ls -la
+          scp -i $KEY -P $PORT $USERNAME@$HOST:/~/labguy-server/.env .env
 
       - name: Load environment variables
         run: |
