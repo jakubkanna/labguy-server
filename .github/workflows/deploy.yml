@@ -23,7 +23,7 @@ jobs:
         env:
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          mkdir -p ~/.ssh
+          mkdir -p ~/.ssh/
           echo "$KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa  # Set permissions to read/write for the owner only
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts  # Avoid SSH prompts
@@ -36,12 +36,6 @@ jobs:
         run: |
           # Use the newly created SSH key to copy the .env file from the server
           scp -P $PORT $USERNAME@$HOST:~/labguy-server/.env .env
-
-      - name: Verify .env file
-        run: |
-          # Check if the .env file has been copied correctly
-          ls -la .env
-          cat .env
 
       - name: Load environment variables
         run: |
