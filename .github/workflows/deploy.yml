@@ -2,10 +2,9 @@ name: Deploy on Push to Original Repo
 
 on:
   push:
-    # Change this to the branch you want to track
     branches:
       - main
-
+  workflow_dispatch:  # Enables manual trigger
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
