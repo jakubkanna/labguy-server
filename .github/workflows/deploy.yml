@@ -1,10 +1,11 @@
-name: Deploy on Push to Original Repo
+name: Deploy on Push or Manual Trigger
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Enables manual trigger
+  workflow_dispatch:
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -13,11 +14,25 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
 
-      # Build Step: Install Dependencies and Build the App
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '22.5.1'  # Update to match your Node.js version
+          node-version: '22.5.1'
+
+      - name: Copy .env from Server
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USERNAME: ${{ secrets.SERVER_USERNAME }}
+          PORT: ${{ secrets.SERVER_PORT }}
+          KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          scp -i $KEY -P $PORT $USERNAME@$HOST:/labguy-server/ .env
+
+      - name: Load environment variables
+        run: |
+          set -a
+          source .env
+          set +a
 
       - name: Install dependencies
         run: npm install
@@ -25,9 +40,8 @@ jobs:
       - name: Build the application
         run: npm run build
 
-      # Conditional Deployment based on successful build
       - name: Deploy to Server
-        if: ${{ success() }}  # Runs this step only if build succeeded
+        if: ${{ success() }}
         env:
           HOST: ${{ secrets.SERVER_HOST }}
           USERNAME: ${{ secrets.SERVER_USERNAME }}
