@@ -19,49 +19,34 @@ jobs:
         with:
           node-version: '22.5.1'
 
-      - name: Print Debug Information
-        run: |
-          echo "Current User: $(whoami)"
-          echo "Current Directory: $(pwd)"
-          echo "Home Directory: $HOME"
-
-      - name: Setup SSH Key
+      - name: Setup SSH Key and Config
         env:
-          KEY: ${{ secrets.SERVER_SSH_KEY }}
-          HOST: ${{ secrets.SERVER_HOST }}
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}   # Your private key
+          SSH_HOST: ${{ secrets.SERVER_HOST }}       # Your server's host
+          SSH_USER: ${{ secrets.SERVER_USERNAME }}    # Your SSH username
         run: |
           echo "Creating .ssh directory..."
           mkdir -p $HOME/.ssh/
-          echo "Writing SSH key to id_rsa..."
-          echo "$KEY" > $HOME/.ssh/id_rsa
-          echo "Checking contents of id_rsa..."
-          cat $HOME/.ssh/id_rsa # This will show the key, check it looks okay
-          echo "Setting permissions for id_rsa..."
-          chmod 600 $HOME/.ssh/id_rsa
-          echo "Using host: $HOST"
-          echo "Adding host to known_hosts..."
-          ssh-keyscan -H $HOST >> $HOME/.ssh/known_hosts  # Use actual host variable
-          echo "Finished creating SSH key setup."
+          
+          echo "Writing SSH key to staging.key..."
+          echo "$SSH_KEY" > $HOME/.ssh/staging.key
+          chmod 600 $HOME/.ssh/staging.key  # Set permissions for the private key
+          
+          echo "Creating SSH config file..."
+          cat >> $HOME/.ssh/config <<EOF
+          Host staging
+              HostName $SSH_HOST
+              User $SSH_USER
+              IdentityFile $HOME/.ssh/staging.key
+              StrictHostKeyChecking no
+          EOF
 
       - name: Copy .env from Server
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          USERNAME: ${{ secrets.SERVER_USERNAME }}
-          PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          echo "Copying .env from server..."
-          scp -P $PORT $USERNAME@$HOST:~/labguy-server/.env .env
-          echo ".env file copied."
-
-      - name: Verify .env file
-        run: |
-          echo "Verifying .env file..."
-          ls -la .env
-          cat .env
+          ssh staging "cat ~/labguy-server/.env" > .env
 
       - name: Load environment variables
         run: |
-          echo "Loading environment variables..."
           set -a
           source .env
           set +a
@@ -74,16 +59,11 @@ jobs:
 
       - name: Deploy to Server
         if: ${{ success() }}
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          USERNAME: ${{ secrets.SERVER_USERNAME }}
-          PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          echo "Deploying to server..."
-          ssh -p $PORT $USERNAME@$HOST << 'EOF'
-            cd ~/labguy-server || { echo "Directory not found"; exit 1; }
+          ssh staging << 'EOF'
+            cd /path/to/your/app
             git pull origin main
             npm install
             npm run build
-            pm2 restart <app_name> # Replace <app_name> with your actual app name
-          EOF
+            pm2 restart <app_name>
+EOF
