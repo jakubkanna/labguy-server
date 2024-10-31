@@ -14,17 +14,17 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
+      - name: Set up Nodejs
         uses: actions/setup-node@v2
         with:
           node-version: '22.5.1'
 
-      - name: Setup SSH Key and Config
+      - name: Setup SSH
         env:
-          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}   # Your private key
-          SSH_HOST: ${{ secrets.SERVER_HOST }}       # Your server's host
-          SSH_USER: ${{ secrets.SERVER_USERNAME }}    # Your SSH username
-          SSH_PORT: ${{ secrets.SERVER_PORT }}        # Your SSH port
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}   
+          SSH_HOST: ${{ secrets.SERVER_HOST }}       
+          SSH_USER: ${{ secrets.SERVER_USERNAME }}    
+          SSH_PORT: ${{ secrets.SERVER_PORT }}      
         run: |
           echo "Creating .ssh directory..."
           mkdir -p $HOME/.ssh/
@@ -43,12 +43,9 @@ jobs:
               StrictHostKeyChecking no
           EOF
 
-      - name: Copy .env from Server
-        run: |
-          ssh staging "cat ~/labguy-server/.env" > .env
-
       - name: Load environment variables
         run: |
+          ssh staging "cat ~/labguy-server/.env" > .env
           set -a
           source .env
           set +a
@@ -63,7 +60,7 @@ jobs:
         if: ${{ success() }}
         run: |
           ssh staging << 'EOF'
-            cd /path/to/your/app
+            cd labguy-server
             git pull origin main
             npm install
             npm run build
