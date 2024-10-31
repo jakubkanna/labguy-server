@@ -1,0 +1,43 @@
+name: Deploy on Push to Original Repo
+
+on:
+  push:
+    # Change this to the branch you want to track
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      # Build Step: Install Dependencies and Build the App
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.5.1'  # Update to match your Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the application
+        run: npm run build
+
+      # Conditional Deployment based on successful build
+      - name: Deploy to Server
+        if: ${{ success() }}  # Runs this step only if build succeeded
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USERNAME: ${{ secrets.SERVER_USERNAME }}
+          KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          ssh -i $KEY -o StrictHostKeyChecking=no $USERNAME@$HOST << 'EOF'
+            cd /path/to/your/app
+            git pull origin main  # Pulls the latest code from the main branch
+            npm install           # Installs any new dependencies
+            npm run build         # Builds the app on the server
+            pm2 restart <app_name>  # Replace <app_name> with your pm2 process name
+          EOF
