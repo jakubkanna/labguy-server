@@ -26,7 +26,10 @@ jobs:
           PORT: ${{ secrets.SERVER_PORT }}
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          scp -i $KEY -P $PORT $USERNAME@$HOST:~/labguy-server/.env .env
+          scp -i $KEY -P $PORT $USERNAME@$HOST:/home/host797681/labguy-server/.env .env
+
+      - name: List current directory
+        run: ls -la
 
       - name: Load environment variables
         run: |
