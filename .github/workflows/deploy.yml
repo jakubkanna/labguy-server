@@ -19,14 +19,24 @@ jobs:
         with:
           node-version: '22.5.1'
 
+      - name: Print Debug Information
+        run: |
+          echo "Current User: $(whoami)"
+          echo "Current Directory: $(pwd)"
+          echo "Home Directory: $HOME"
+
       - name: Create SSH Key
         env:
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          mkdir -p ~/.ssh/
-          echo "$KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa  # Set permissions to read/write for the owner only
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts  # Avoid SSH prompts
+          # Ensure the .ssh directory exists
+          mkdir -p $HOME/.ssh/
+          # Write the key to id_rsa
+          echo "$KEY" > $HOME/.ssh/id_rsa
+          # Set appropriate permissions
+          chmod 600 $HOME/.ssh/id_rsa
+          # Add the server to known hosts
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> $HOME/.ssh/known_hosts
 
       - name: Copy .env from Server
         env:
@@ -36,6 +46,12 @@ jobs:
         run: |
           # Use the newly created SSH key to copy the .env file from the server
           scp -P $PORT $USERNAME@$HOST:~/labguy-server/.env .env
+
+      - name: Verify .env file
+        run: |
+          # Check if the .env file has been copied correctly
+          ls -la .env
+          cat .env
 
       - name: Load environment variables
         run: |
@@ -62,5 +78,5 @@ jobs:
             git pull origin main
             npm install
             npm run build
-            pm2 restart www
+            pm2 restart <app_name> # Replace <app_name> with your actual app name
           EOF
