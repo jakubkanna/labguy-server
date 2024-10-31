@@ -25,25 +25,22 @@ jobs:
           echo "Current Directory: $(pwd)"
           echo "Home Directory: $HOME"
 
-      - name: Create SSH Key
+      - name: Setup SSH Key
         env:
           KEY: ${{ secrets.SERVER_SSH_KEY }}
+          HOST: ${{ secrets.SERVER_HOST }}
         run: |
           echo "Creating .ssh directory..."
           mkdir -p $HOME/.ssh/
-          
           echo "Writing SSH key to id_rsa..."
           echo "$KEY" > $HOME/.ssh/id_rsa
-          
           echo "Checking contents of id_rsa..."
           cat $HOME/.ssh/id_rsa # This will show the key, check it looks okay
-
           echo "Setting permissions for id_rsa..."
           chmod 600 $HOME/.ssh/id_rsa
-
+          echo "Using host: $HOST"
           echo "Adding host to known_hosts..."
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> $HOME/.ssh/known_hosts
-          
+          ssh-keyscan -H $HOST >> $HOME/.ssh/known_hosts  # Use actual host variable
           echo "Finished creating SSH key setup."
 
       - name: Copy .env from Server
