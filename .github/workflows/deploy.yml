@@ -29,14 +29,22 @@ jobs:
         env:
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          # Ensure the .ssh directory exists
+          echo "Creating .ssh directory..."
           mkdir -p $HOME/.ssh/
-          # Write the key to id_rsa
+          
+          echo "Writing SSH key to id_rsa..."
           echo "$KEY" > $HOME/.ssh/id_rsa
-          # Set appropriate permissions
+          
+          echo "Checking contents of id_rsa..."
+          cat $HOME/.ssh/id_rsa # This will show the key, check it looks okay
+
+          echo "Setting permissions for id_rsa..."
           chmod 600 $HOME/.ssh/id_rsa
-          # Add the server to known hosts
+
+          echo "Adding host to known_hosts..."
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> $HOME/.ssh/known_hosts
+          
+          echo "Finished creating SSH key setup."
 
       - name: Copy .env from Server
         env:
@@ -44,17 +52,19 @@ jobs:
           USERNAME: ${{ secrets.SERVER_USERNAME }}
           PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          # Use the newly created SSH key to copy the .env file from the server
+          echo "Copying .env from server..."
           scp -P $PORT $USERNAME@$HOST:~/labguy-server/.env .env
+          echo ".env file copied."
 
       - name: Verify .env file
         run: |
-          # Check if the .env file has been copied correctly
+          echo "Verifying .env file..."
           ls -la .env
           cat .env
 
       - name: Load environment variables
         run: |
+          echo "Loading environment variables..."
           set -a
           source .env
           set +a
@@ -72,7 +82,7 @@ jobs:
           USERNAME: ${{ secrets.SERVER_USERNAME }}
           PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          # Deploy to the server using the created SSH key
+          echo "Deploying to server..."
           ssh -p $PORT $USERNAME@$HOST << 'EOF'
             cd ~/labguy-server || { echo "Directory not found"; exit 1; }
             git pull origin main
