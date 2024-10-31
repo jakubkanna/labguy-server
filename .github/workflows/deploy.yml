@@ -32,12 +32,13 @@ jobs:
         env:
           HOST: ${{ secrets.SERVER_HOST }}
           USERNAME: ${{ secrets.SERVER_USERNAME }}
+          PORT: ${{ secrets.SERVER_PORT }}
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
-          ssh -i $KEY -o StrictHostKeyChecking=no $USERNAME@$HOST << 'EOF'
+          ssh -i $KEY -o StrictHostKeyChecking=no -p $PORT $USERNAME@$HOST << 'EOF'
             cd /path/to/your/app
-            git pull origin main  # Pulls the latest code from the main branch
-            npm install           # Installs any new dependencies
-            npm run build         # Builds the app on the server
-            pm2 restart <app_name>  # Replace <app_name> with your pm2 process name
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart <app_name>
           EOF
