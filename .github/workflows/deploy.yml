@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           # Replace `upstream-owner/upstream-repo` with the upstream repository's owner and name
-          repository: upstream-owner/upstream-repo
+          repository: jakubkanna/labguy-server
           # Checks out the main branch
           ref: main
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
