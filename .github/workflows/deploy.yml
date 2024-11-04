@@ -1,11 +1,12 @@
-name: Deploy on Push or Manual Trigger
+name: Deploy on Push, Schedule, or Manual Trigger
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-
+  schedule:
+    - cron: '0 0 * * *'
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -13,18 +14,41 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v2
+        with:
+          # Replace `upstream-owner/upstream-repo` with the upstream repository's owner and name
+          repository: upstream-owner/upstream-repo
+          # Checks out the main branch
+          ref: main
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Check for updates in upstream
+        id: check_diff
+        run: |
+          # Fetch latest commits from upstream
+          git fetch origin main
+          
+          # Check if there are any changes compared to the current fork's main branch
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]; then
+            echo "No updates found."
+            echo "::set-output name=changes_detected::false"
+          else
+            echo "Updates detected."
+            echo "::set-output name=changes_detected::true"
+          fi
 
       - name: Set up Nodejs
+        if: steps.check_diff.outputs.changes_detected == 'true'
         uses: actions/setup-node@v2
         with:
           node-version: '22.5.1'
 
       - name: Setup SSH
+        if: steps.check_diff.outputs.changes_detected == 'true'
         env:
-          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}   
-          SSH_HOST: ${{ secrets.SERVER_HOST }}       
-          SSH_USER: ${{ secrets.SERVER_USERNAME }}    
-          SSH_PORT: ${{ secrets.SERVER_PORT }}      
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SSH_HOST: ${{ secrets.SERVER_HOST }}
+          SSH_USER: ${{ secrets.SERVER_USERNAME }}
+          SSH_PORT: ${{ secrets.SERVER_PORT }}
         run: |
           echo "Creating .ssh directory..."
           mkdir -p $HOME/.ssh/
@@ -44,6 +68,7 @@ jobs:
           EOF
 
       - name: Load environment variables
+        if: steps.check_diff.outputs.changes_detected == 'true'
         run: |
           ssh staging "cat ~/labguy-server/.env" > .env
           set -a
@@ -51,13 +76,15 @@ jobs:
           set +a
 
       - name: Install dependencies
+        if: steps.check_diff.outputs.changes_detected == 'true'
         run: npm install
 
       - name: Build the application
+        if: steps.check_diff.outputs.changes_detected == 'true'
         run: npm run build
 
       - name: Deploy to Server
-        if: ${{ success() }}
+        if: steps.check_diff.outputs.changes_detected == 'true'
         run: |
           ssh staging << 'EOF'
             cd labguy-server
@@ -65,3 +92,4 @@ jobs:
             npm install
             npm run build
             pm2 restart www
+          EOF
