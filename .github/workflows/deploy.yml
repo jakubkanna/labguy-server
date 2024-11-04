@@ -6,7 +6,8 @@ on:
       - main
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'  # Runs once every 24 hours at midnight UTC
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -15,10 +16,8 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
         with:
-          # Replace `upstream-owner/upstream-repo` with the upstream repository's owner and name
-          repository: jakubkanna/labguy-server
-          # Checks out the main branch
-          ref: main
+          repository: jakubkanna/labguy-server 
+          ref: main  
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Check for updates in upstream
@@ -30,20 +29,20 @@ jobs:
           # Check if there are any changes compared to the current fork's main branch
           if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]; then
             echo "No updates found."
-            echo "::set-output name=changes_detected::false"
+            echo "CHANGES_DETECTED=false" >> $GITHUB_ENV
           else
             echo "Updates detected."
-            echo "::set-output name=changes_detected::true"
+            echo "CHANGES_DETECTED=true" >> $GITHUB_ENV
           fi
 
       - name: Set up Nodejs
-        if: steps.check_diff.outputs.changes_detected == 'true'
+        if: env.CHANGES_DETECTED == 'true'
         uses: actions/setup-node@v2
         with:
           node-version: '22.5.1'
 
       - name: Setup SSH
-        if: steps.check_diff.outputs.changes_detected == 'true'
+        if: env.CHANGES_DETECTED == 'true'
         env:
           SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
           SSH_HOST: ${{ secrets.SERVER_HOST }}
@@ -68,7 +67,7 @@ jobs:
           EOF
 
       - name: Load environment variables
-        if: steps.check_diff.outputs.changes_detected == 'true'
+        if: env.CHANGES_DETECTED == 'true'
         run: |
           ssh staging "cat ~/labguy-server/.env" > .env
           set -a
@@ -76,15 +75,15 @@ jobs:
           set +a
 
       - name: Install dependencies
-        if: steps.check_diff.outputs.changes_detected == 'true'
+        if: env.CHANGES_DETECTED == 'true'
         run: npm install
 
       - name: Build the application
-        if: steps.check_diff.outputs.changes_detected == 'true'
+        if: env.CHANGES_DETECTED == 'true'
         run: npm run build
 
       - name: Deploy to Server
-        if: steps.check_diff.outputs.changes_detected == 'true'
+        if: env.CHANGES_DETECTED == 'true'
         run: |
           ssh staging << 'EOF'
             cd labguy-server
