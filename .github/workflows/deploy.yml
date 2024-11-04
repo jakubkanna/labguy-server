@@ -16,18 +16,23 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
         with:
-          repository: jakubkanna/labguy-server 
-          ref: main  
+          ref: main
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Add upstream repository
+        run: |
+          # Add the original repo as an upstream remote
+          git remote add upstream https://github.com/jakubkanna/labguy-server.git
+          git fetch upstream main
 
       - name: Check for updates in upstream
         id: check_diff
         run: |
-          # Fetch latest commits from upstream
-          git fetch origin main
+          # Fetch latest changes from upstream's main branch
+          git fetch upstream main
           
-          # Check if there are any changes compared to the current fork's main branch
-          if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]; then
+          # Compare the fork's current main branch with upstream's main branch
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse upstream/main)" ]; then
             echo "No updates found."
             echo "CHANGES_DETECTED=false" >> $GITHUB_ENV
           else
