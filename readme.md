@@ -33,9 +33,10 @@
    3. Follow the steps in the [Installation](#installation) section.
    4. Create .htaccess file if necessary
 
-      run `touch .htaccess`, then copy paste\*:
+      create .htaccess file:
 
       ```DirectoryIndex disabled
+      DirectoryIndex disabled
       RewriteEngine On
       RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
       RewriteCond %{REQUEST_FILENAME} !-f
