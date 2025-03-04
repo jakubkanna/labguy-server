@@ -15,7 +15,7 @@ export class PostController extends Controller {
   get = asyncHandler(async (req: Request, res: Response) => {
     const posts = await prisma.post.findMany({
       include: {
-        general: true,
+        general: { include: { tags: true } },
       },
       orderBy: {
         general: { updatedAt: "desc" },
