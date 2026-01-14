@@ -29,60 +29,59 @@
 <details>
   <summary>Shared hosting (cheap)</summary>
 
+1.  Connect to the server via SSH.
+2.  Navigate to the root directory using `cd ~`
+3.  Follow the steps in the [Installation](#installation) section.
+4.  Create `.htaccess` file if necessary.
 
-   1. Connect to the server via SSH.
-   2. Navigate to the root directory using `cd ~`
-   3. Follow the steps in the [Installation](#installation) section.
-   4. Create `.htaccess` file if necessary.
+    Create `.htaccess` file:
 
-      Create `.htaccess` file:
+    ```apache
+    DirectoryIndex disabled
+    DirectoryIndex disabled
+    RewriteEngine On
+    RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+    ```
 
-      ```apache
-      DirectoryIndex disabled
-      DirectoryIndex disabled
-      RewriteEngine On
-      RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
-      RewriteCond %{REQUEST_FILENAME} !-f
-      RewriteCond %{REQUEST_FILENAME} !-d
-      RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
-      ```
+    _You need to replace `127.0.0.1` with your machine's IP._
 
-      *You need to replace `127.0.0.1` with your machine's IP.*
+5.  Execute:
 
-   5. Execute:
+    ```bash
+    mkdir ~/.npm-global
+    npm config set prefix '~/.npm-global'
+    echo 'export PATH=~/.npm-global/bin:~/bin:$PATH ' >> $HOME/.bash_profile && source $HOME/.bash_profile
+    ```
 
-      ```bash
-      mkdir ~/.npm-global
-      npm config set prefix '~/.npm-global'
-      echo 'export PATH=~/.npm-global/bin:~/bin:$PATH ' >> $HOME/.bash_profile && source $HOME/.bash_profile
-      ```
-
-   6. `npm i pm2 -g`
-   7. `pm2 start bin/www`
-   8. `pm2 save`
-   9. Application should be running in the background now.
+6.  `npm i pm2 -g`
+7.  `pm2 start bin/www`
+8.  `pm2 save`
+9.  Application should be running in the background now.
 
 </details>
 
 <details>
   <summary>VPS, Ubuntu (solid)</summary>
 
-   1. Connect to the server via SSH.
-   2. Navigate to the root directory using `cd ~`
-   3. Create MariaDB database
-   4. Follow the steps in the [Installation](#installation) section. Use 'vps' branch. Skip optional variables marked as 'opt.'
-   6. `npm i pm2 -g`
-   7. `pm2 start bin/www`
-   8. `pm2 save`
-   9. `pm2 startup`
-  10. [Setup Nginx](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-20-04#step-4-setting-up-nginx-as-a-reverse-proxy-server)
-  11. [Setup Certbot](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04)
-  12. You should be able to connect to your API via https now.
+1.  Connect to the server via SSH.
+2.  Navigate to the root directory using `cd ~`
+3.  Create MariaDB database
+4.  Follow the steps in the [Installation](#installation) section. Use 'vps' branch. Skip optional variables marked as 'opt.'
+5.  `npm i pm2 -g`
+6.  `pm2 start bin/www`
+7.  `pm2 save`
+8.  `pm2 startup`
+9.  [Setup Nginx](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-20-04#step-4-setting-up-nginx-as-a-reverse-proxy-server)
+10. [Setup Certbot](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04)
+11. You should be able to connect to your API via https now.
 
 </details>
 
-      
 ## Auto-updates
+
 :warning: **CAUTION** it will synchronize your commit history.
 
 1. Create classic Personal Access Token (PAT) with **repo** and **workflow** permissions enabled
@@ -95,7 +94,7 @@
    SERVER_PORT
    ```
 3. Go to Actions and enable all available actions.
-   
+
 ## Todo
 
 Planned future features:

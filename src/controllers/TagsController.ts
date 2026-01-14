@@ -40,12 +40,12 @@ export default class TagsController {
 
   // Update or create a tag based on the title
   updateOrCreate = asyncHandler(async (req, res) => {
-    const { title, id } = req.body;
+    const { title } = req.body;
 
     const updatedOrCreatedTag = await prisma.tag.upsert({
-      where: { id },
-      update: { title: title },
-      create: { title: title },
+      where: { title },
+      update: { title },
+      create: { title },
     });
 
     successResponse(res, updatedOrCreatedTag);

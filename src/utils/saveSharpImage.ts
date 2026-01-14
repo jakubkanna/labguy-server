@@ -19,7 +19,7 @@ export async function saveSharpImage(
   const filename = `${sanitized.name}${originalExtension}`;
   const filePath = path.join(imageUploadDir, filename);
 
-  const image = sharp(file.buffer);
+  const image = sharp(file.buffer).rotate();
   const metadata = await image.metadata();
   const maxLength = 3840;
 
